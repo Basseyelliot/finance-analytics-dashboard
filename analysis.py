@@ -100,21 +100,17 @@ def run_monte_carlo():
 
 def run_prophet_forecast():
     raw_df = yf.download("KO", period="5y", auto_adjust=False)
-
     raw_df = raw_df.reset_index()
 
-    # Fix Yahoo Finance multi-index columns
     if isinstance(raw_df.columns, pd.MultiIndex):
         raw_df.columns = [
             col[0] if col[0] != "" else col[1]
             for col in raw_df.columns
         ]
 
-    # If Close is missing, use Adj Close
     if "Close" not in raw_df.columns and "Adj Close" in raw_df.columns:
         raw_df["Close"] = raw_df["Adj Close"]
 
-    # Keep only Date and Close
     prophet_df = raw_df[["Date", "Close"]].copy()
 
     prophet_df = prophet_df.rename(columns={
