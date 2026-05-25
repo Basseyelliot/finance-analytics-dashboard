@@ -100,24 +100,15 @@ def run_monte_carlo():
 
 def run_prophet_forecast():
     raw_df = yf.download("KO", period="5y", auto_adjust=False)
-    raw_df = raw_df.reset_index()
 
+    # If Yahoo returns multi-index columns, select Close safely
     if isinstance(raw_df.columns, pd.MultiIndex):
-        raw_df.columns = [
-            col[0] if col[0] != "" else col[1]
-            for col in raw_df.columns
-        ]
+        close_series = raw_df["Close"]["KO"]
+    else:
+        close_series = raw_df["Close"]
 
-    if "Close" not in raw_df.columns and "Adj Close" in raw_df.columns:
-        raw_df["Close"] = raw_df["Adj Close"]
-
-    prophet_df = raw_df[["Date", "Close"]].copy()
-
-    prophet_df = prophet_df.rename(columns={
-        "Date": "ds",
-        "Close": "y"
-    })
-
+    prophet_df = close_series.reset_index()
+    prophet_df.columns = ["ds", "y"]
     prophet_df = prophet_df.dropna()
 
     model = Prophet()
